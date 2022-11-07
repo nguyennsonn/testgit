@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    @import "compass";
+$NUM_PARTICLES: 600; // must match number of elements
+$RADIUS: 300px;
+$BASE_SIZE: 70px; // size of a particle at dead center
+$INITIAL_SCALE: .1; 
+$ANIMATION_DURATION: 2500ms;
+$BG_COLOR: #FFF;
+$BASE_HUE: 60; // center hue in HSL 
+$HUE_DIFF: -160; // amount the hue shifts
+$SHADOWS: true; // set false for better performance
+$ANIMATION_EASE: cubic-bezier(0.125, 0, 0.410, 0); // any valid easing values such as ease-in-out
+$ANIMATION_DIRECTION: reverse; // try normal or alternate
+$π: pi();
+
+// uniform distribution of a random point on a disc
+@function calcCoords($p: 100) {
+  $θ: 2*$π*(random($p) * (1/$p));
+  $u: (random($p) * (1/$p))+(random($p) * (1/$p));
+  $r: null;
+  @if ($u > 1) { $r: 2 - $u; }
+  @else { $r: $u;  }
+  $x: $r * cos($θ);
+  $y: $r * sin($θ);
+  $c: sqrt(pow($x,2) + pow($y,2)); //hypoteneuse
+  $coords: ($x, $y, $c);
+  @return $coords;
+}
+
+html, body { 
+  height: 100%;
+  min-height: $RADIUS * 2;
+  background-color: $BG_COLOR;
+}
+
+.particle {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  margin: auto;
+  width: $BASE_SIZE;
+  height: $BASE_SIZE;
+  border-radius: 50%;
+  @if($SHADOWS){
+    box-shadow: 0 ($BASE_SIZE*.2) ($BASE_SIZE*.2) rgba(0,0,0,.3), 
+                0 (-$BASE_SIZE*.4) ($BASE_SIZE*.2) rgba(0,0,0,.1) inset,
+                0 ($BASE_SIZE*.6) ($BASE_SIZE*.2) rgba(255,255,255,.1) inset;
+  }
+  opacity: 0;
+  animation: doit $ANIMATION_DURATION infinite $ANIMATION_EASE;
+  animation-direction: $ANIMATION_DIRECTION;
+}
+
+$i: 1;
+@for $i from $i through $NUM_PARTICLES {
+  $coords: calcCoords();
+  $x: nth($coords,1) * $RADIUS;
+  $y: nth($coords,2) * $RADIUS;
+  $c: nth($coords,3); // hypoteneuse - the distance from center
+  $d: sin($c*$π/2); // to a nice curve
+  #particle#{$i} {
+    background: hsla($BASE_HUE + $d * $HUE_DIFF, 100%, (80% - 30% * $d), 1);
+    transform: translateX($x) translateY($y) scale(1-$d);
+    animation-delay: -1 * random($ANIMATION_DURATION) + ms;
+    //z-index: $NUM_PARTICLES + floor($NUM_PARTICLES*$d);
+  }
+}
+
+@keyframes doit {
+  0% { opacity: 0; }
+  5% { opacity: 1; }
+  100% { 
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale($INITIAL_SCALE);
+  } 
+}
+  </style>
+</head>
+<body>
+  -(1..600).each do |i|
+  .particle{ :id => "particle#{i}" } 
+
+</body>
+</html>
